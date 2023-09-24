@@ -99,4 +99,3 @@ if user_query := st.chat_input(placeholder="Ask me anything!"):
         retrieval_handler = PrintRetrievalHandler(st.container())
         stream_handler = StreamHandler(st.empty())
         response = qa_chain(user_query, callbacks=[retrieval_handler, stream_handler])
-        st.success(response)
