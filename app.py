@@ -31,7 +31,7 @@ def configure_retriever():
     embeddings = OpenAIEmbeddings()
     docsearch = Pinecone.from_existing_index(index_name=os.getenv("PINECONE_INDEX"),embedding=embeddings)
     # Define retriever
-    retriever = docsearch.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 4})
+    retriever = docsearch.as_retriever(search_type="mmr", search_kwargs={"k": 5, "fetch_k": 4})
     return retriever
 
 
