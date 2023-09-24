@@ -64,7 +64,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
     def on_retriever_end(self, documents, **kwargs):
         for idx, doc in enumerate(documents):
             source = os.path.basename(doc.metadata["path"])
-            self.status.write(f"**Document {idx} from {source}**")
+            self.status.write(f"**Document: {idx} | {source} | {doc.metadata['page']}**")
             self.status.markdown(doc.page_content)
         self.status.update(state="complete")
 
