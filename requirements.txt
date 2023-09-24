@@ -1,0 +1,5 @@
+langchain==0.0.300
+pinecone-client==2.2.2
+python-dotenv==1.0.0
+openai
+streamlit==1.26.0
