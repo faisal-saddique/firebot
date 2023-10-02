@@ -90,7 +90,7 @@ memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, r
 # memory = ConversationSummaryBufferMemory(llm=llm, input_key='question', output_key='answer')
 # Setup LLM and QA chain
 llm = ChatOpenAI(
-    model_name="gpt-4-0613", temperature=0, streaming=True
+    model_name="gpt-3.5-turbo-16k", temperature=0, streaming=True
 )
 
 qa_chain = ConversationalRetrievalChain.from_llm(
