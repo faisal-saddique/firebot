@@ -11,7 +11,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 import pinecone
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.retrievers.multi_query import MultiQueryRetriever
 
 from dotenv import load_dotenv  # For loading environment variables from .env file
 import os
@@ -23,6 +23,7 @@ st.set_page_config(page_title="FireBot", page_icon="🔥🚒")
 st.title("🔥🚒 FireBot")
 
 
+
 @st.cache_resource(ttl="1h")
 def configure_retriever():
     pinecone.init(api_key=os.getenv("PINECONE_API_KEY"),
@@ -31,7 +32,21 @@ def configure_retriever():
     embeddings = OpenAIEmbeddings()
     docsearch = Pinecone.from_existing_index(index_name=os.getenv("PINECONE_INDEX"),embedding=embeddings)
     # Define retriever
-    retriever = docsearch.as_retriever(search_kwargs={"k": 5}) # search_type="mmr", , "fetch_k": 4
+    retriever = docsearch.as_retriever(search_kwargs={"k": 6})
+    
+    from langchain.retrievers import PineconeHybridSearchRetriever
+    from pinecone_text.sparse import BM25Encoder
+    # load to your BM25Encoder object
+    bm25_encoder = BM25Encoder().load("bm25_values_for_ora_bot.json")
+    index = pinecone.Index(os.getenv("PINECONE_INDEX"))
+    retriever = PineconeHybridSearchRetriever(
+        embeddings=embeddings, sparse_encoder=bm25_encoder, index=index, top_k=5
+    )
+
+    # llm = ChatOpenAI(temperature=0)
+    # retriever_from_llm = MultiQueryRetriever.from_llm(
+    #     retriever=retriever, llm=llm
+    # )
     return retriever
 
 
@@ -63,8 +78,8 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
     def on_retriever_end(self, documents, **kwargs):
         for idx, doc in enumerate(documents):
-            source = os.path.basename(doc.metadata["path"])
-            self.status.write(f"**Document: {idx} | {source} | {doc.metadata['page']}**")
+            # source = os.path.basename(doc.metadata["path"])
+            self.status.write(f"**Document: {idx}**")
             self.status.markdown(doc.page_content)
         self.status.update(state="complete")
 
@@ -99,3 +114,4 @@ if user_query := st.chat_input(placeholder="Ask me anything!"):
         retrieval_handler = PrintRetrievalHandler(st.container())
         stream_handler = StreamHandler(st.empty())
         response = qa_chain(user_query, callbacks=[retrieval_handler, stream_handler])
+        # st.error(response)
