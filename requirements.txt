@@ -4,3 +4,4 @@ python-dotenv==1.0.0
 openai
 tiktoken
 streamlit==1.26.0
+pinecone-text
