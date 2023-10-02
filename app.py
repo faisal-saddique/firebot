@@ -39,11 +39,13 @@ def configure_retriever():
         embeddings=embeddings, sparse_encoder=bm25_encoder, index=index, top_k=5
     )
 
-    llm = ChatOpenAI(temperature=0,model_name="gpt-3.5-turbo-16k")
-    retriever_from_llm = MultiQueryRetriever.from_llm(
-        retriever=retriever, llm=llm
-    )
-    return retriever_from_llm
+    # llm = ChatOpenAI(temperature=0,model_name="gpt-3.5-turbo-16k")
+
+    # retriever_from_llm = MultiQueryRetriever.from_llm(
+    #     retriever=retriever, llm=llm
+    # )
+
+    return retriever
 
 
 class StreamHandler(BaseCallbackHandler):
