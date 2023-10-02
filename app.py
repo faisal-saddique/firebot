@@ -30,10 +30,6 @@ def configure_retriever():
               environment=os.getenv("PINECONE_ENVIRONMENT"))
     # Create OpenAIEmbeddings object using the provided API key
     embeddings = OpenAIEmbeddings()
-    docsearch = Pinecone.from_existing_index(index_name=os.getenv("PINECONE_INDEX"),embedding=embeddings)
-    # Define retriever
-    retriever = docsearch.as_retriever(search_kwargs={"k": 6})
-    
     from langchain.retrievers import PineconeHybridSearchRetriever
     from pinecone_text.sparse import BM25Encoder
     # load to your BM25Encoder object
@@ -43,11 +39,11 @@ def configure_retriever():
         embeddings=embeddings, sparse_encoder=bm25_encoder, index=index, top_k=5
     )
 
-    # llm = ChatOpenAI(temperature=0)
-    # retriever_from_llm = MultiQueryRetriever.from_llm(
-    #     retriever=retriever, llm=llm
-    # )
-    return retriever
+    llm = ChatOpenAI(temperature=0,model_name="gpt-3.5-turbo-16k")
+    retriever_from_llm = MultiQueryRetriever.from_llm(
+        retriever=retriever, llm=llm
+    )
+    return retriever_from_llm
 
 
 class StreamHandler(BaseCallbackHandler):
