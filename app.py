@@ -5,10 +5,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import PyPDFLoader
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-from langchain.vectorstores import Pinecone
-# For generating embeddings with OpenAI's embedding model
-from langchain.embeddings.openai import OpenAIEmbeddings
-import pinecone
+import weaviate
+from langchain.retrievers.weaviate_hybrid_search import WeaviateHybridSearchRetriever
+
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
 from langchain.retrievers.multi_query import MultiQueryRetriever
@@ -19,24 +18,29 @@ import os
 # Load environment variables from .env file
 load_dotenv()
 
+WEAVIATE_URL = os.getenv("WEAVIATE_URL")
+auth_client_secret = weaviate.AuthApiKey(api_key=os.getenv("WEAVIATE_API_KEY"))
+
+
 st.set_page_config(page_title="FireBot", page_icon="🔥🚒")
 st.title("🔥🚒 FireBot")
 
-
-
 @st.cache_resource(ttl="1h")
 def configure_retriever():
-    pinecone.init(api_key=os.getenv("PINECONE_API_KEY"),
-              environment=os.getenv("PINECONE_ENVIRONMENT"))
-    # Create OpenAIEmbeddings object using the provided API key
-    embeddings = OpenAIEmbeddings()
-    from langchain.retrievers import PineconeHybridSearchRetriever
-    from pinecone_text.sparse import BM25Encoder
-    # load to your BM25Encoder object
-    bm25_encoder = BM25Encoder().load("bm25_values_for_ora_bot.json")
-    index = pinecone.Index(os.getenv("PINECONE_INDEX"))
-    retriever = PineconeHybridSearchRetriever(
-        embeddings=embeddings, sparse_encoder=bm25_encoder, index=index, top_k=5
+    client = weaviate.Client(
+        url=WEAVIATE_URL,
+        additional_headers={
+            "X-Openai-Api-Key": os.getenv("OPENAI_API_KEY"),
+        },
+        auth_client_secret=auth_client_secret
+    )
+
+    retriever = WeaviateHybridSearchRetriever(
+        client=client,
+        index_name="OraBot",
+        text_key="text",
+        attributes=[],
+        create_schema_if_missing=True,
     )
 
     llm = ChatOpenAI(temperature=0,model_name="gpt-3.5-turbo-16k")
